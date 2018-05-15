@@ -8,17 +8,23 @@ class MenuController
   end
 
   def main_menu
-    puts "#{address_book.name} Address Book - #{Entry.count} entries"
+    puts "#{@address_book.name} Address Book Selected\n#{@address_book.entries.count} entries"
+    puts "0 - Switch AddressBook"
     puts "1 - View all entries"
     puts "2 - Create an entry"
     puts "3 - Search for an entry"
     puts "4 - Import entries from a CSV"
     puts "5 - Exit"
+    puts "6 - Search By Phone"
     print "Enter your selection: "
 
     selection = gets.to_i
 
     case selection
+      when 0
+        system "clear"
+        select_address_book_menu
+        main_menu
       when 1
         system "clear"
         view_all_entries
@@ -38,6 +44,10 @@ class MenuController
       when 5
         puts "Good-bye!"
         exit(0)
+      when 6
+        system "clear"
+        search_by_phone
+        main_menu
       else
         system "clear"
         puts "Sorry, that is not a valid input"
@@ -45,11 +55,33 @@ class MenuController
     end
   end
 
+  def select_address_book_menu
+    puts "Select An Address Book: "
+    AddressBook.all.each_with_index do |address_book, index|
+      puts "#{index} - #{address_book.name}"
+    end
+
+    index = gets.chomp.to_i
+
+    @address_book = AddressBook.find(index + 1)
+    system "clear"
+    return if @address_book
+    puts "Please select a valid index"
+    select_address_book_menu
+  end
+
   def view_all_entries
-    Entry.all.each do |entry|
-      system "clear"
-      puts entry.to_s
-      entry_submenu(entry)
+    print "What would you like to order by? (i.e name ASC, email DESC etc). "
+    order_by = gets.chomp
+    if order_by
+      ordered_results = @address_book.order_entry(order_by)
+      ordered_results.entries.each do |entry|
+        system "clear"
+        puts entry.to_s
+        entry_submenu(entry)
+      end
+    else
+      print "Please enter a valid attribute to order by, or choose 'id' for default."
     end
 
     system "clear"
@@ -72,10 +104,23 @@ class MenuController
     puts "New entry created"
   end
 
+  def search_by_phone
+    print "Search by phone: "
+    phone = gets.chomp
+    match = Entry.find_by_phone_number(phone)
+    system "clear"
+    if match
+      puts match.to_s
+      search_submenu(match)
+    else
+      puts "No match found for #{phone}"
+    end
+  end
+
   def search_entries
     print "Search by name: "
     name = gets.chomp
-    match = Entry.find_by(:name, name)
+    match = @address_book.find_entry(name)
     system "clear"
     if match
       puts match.to_s
@@ -175,5 +220,6 @@ class MenuController
         search_submenu(entry)
     end
   end
+
 end
 
