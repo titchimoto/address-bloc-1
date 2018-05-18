@@ -3,15 +3,16 @@ require "csv"
 require 'bloc_record/base'
 
 class AddressBook < BlocRecord::Base
+  has_many :entries
   
   def initialize(options={})
     super
     @entries = []
   end
 
-  def entries
-    Entry.where(address_book_id: self.id)
-  end
+  # def entries
+  #   Entry.where(address_book_id: self.id)
+  # end
 
   def find_entry(name)
     Entry.where(name: name, address_book_id: self.id).first
@@ -23,6 +24,14 @@ class AddressBook < BlocRecord::Base
 
   def order_entry(order_by)
     Entry.order(order_by)
+  end
+
+  def update_me(updates)
+    Entry.update_all(updates)
+  end
+
+  def destroy_all(conditions=nil)
+    Entry.destroy_all(conditions)
   end
 
   def import_from_csv(file_name)

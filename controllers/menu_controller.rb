@@ -16,6 +16,7 @@ class MenuController
     puts "4 - Import entries from a CSV"
     puts "5 - Exit"
     puts "6 - Search By Phone"
+    puts "7 - Test Delete All"
     print "Enter your selection: "
 
     selection = gets.to_i
@@ -48,6 +49,10 @@ class MenuController
         system "clear"
         search_by_phone
         main_menu
+      when 7
+        system "clear"
+        delete_all_entries
+        main_menu
       else
         system "clear"
         puts "Sorry, that is not a valid input"
@@ -77,6 +82,7 @@ class MenuController
       ordered_results = @address_book.order_entry(order_by)
       ordered_results.entries.each do |entry|
         system "clear"
+        # puts "Address Book: #{entry.address_book.name} Entry"
         puts entry.to_s
         entry_submenu(entry)
       end
@@ -176,23 +182,27 @@ class MenuController
   end
 
   def delete_entry(entry)
-    address_book.entries.delete(entry)
-    puts "#{entry.name} has been deleted"
+    entry.destroy
+    puts "Entry has been successfully deleted"
   end
 
   def edit_entry(entry)
+    updates = {}
     print "Updated name: "
     name = gets.chomp
+    updates[:name] = name unless name.empty?
     print "Updated phone number: "
     phone_number = gets.chomp
+    updates[:phone_number] = phone_number unless phone_number.empty?
     print "Updated email: "
     email = gets.chomp
-    entry.name = name if !name.empty?
-    entry.phone_number = phone_number if !phone_number.empty?
-    entry.email = email if !email.empty?
+    updates[:email] = email unless email.empty?
+
+    entry.update_attributes(updates)
+
     system "clear"
     puts "Updated entry:"
-    puts entry
+    puts Entry.find(entry.id)
   end
 
   def search_submenu(entry)
@@ -219,6 +229,19 @@ class MenuController
         puts entry.to_s
         search_submenu(entry)
     end
+  end
+
+  # def update_all_entries
+  #   puts "What would you like to update on everybody?"
+  #   updates = gets.chomp
+  #   updates
+  #   @address_book.update_me(updates)
+  # end
+
+
+  def delete_all_entries
+    @address_book.destroy_all
+    puts "All entries successfully deleted!"
   end
 
 end
